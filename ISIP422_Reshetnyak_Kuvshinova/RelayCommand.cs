@@ -27,5 +27,11 @@ namespace ISIP422_Reshetnyak_Kuvshinova
         public bool CanExecute(object parameter) => _canExecute == null || _canExecute();
 
         public void Execute(object parameter) => _execute();
+
+        // Метод для принудительного обновления состояния команды
+        public void RaiseCanExecuteChanged()
+        {
+            CommandManager.InvalidateRequerySuggested();
+        }
     }
 }

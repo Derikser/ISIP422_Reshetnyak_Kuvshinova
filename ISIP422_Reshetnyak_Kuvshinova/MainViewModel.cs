@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace ISIP422_Reshetnyak_Kuvshinova
 {
@@ -16,12 +13,15 @@ namespace ISIP422_Reshetnyak_Kuvshinova
         private Product _selectedProduct;
         private string _searchText;
         private List<Product> _allProducts;
+        private SalesHistory _salesHistory;
 
         public MainViewModel()
         {
             _allProducts = new List<Product>();
             Products = new ObservableCollection<Product>();
             FilteredProducts = new ObservableCollection<Product>();
+            _salesHistory = new SalesHistory();
+
             AddTestData();
 
             // Команды
@@ -30,6 +30,8 @@ namespace ISIP422_Reshetnyak_Kuvshinova
             SupplyProductCommand = new RelayCommand(SupplyProduct, CanModifyProduct);
             SellProductCommand = new RelayCommand(SellProduct, CanModifyProduct);
             SearchProductsCommand = new RelayCommand(SearchProducts);
+            UndoLastSaleCommand = new RelayCommand(UndoLastSale, CanUndoLastSale);
+            ShowSalesReportCommand = new RelayCommand(ShowSalesReport);
         }
 
         private void AddTestData()
@@ -71,6 +73,10 @@ namespace ISIP422_Reshetnyak_Kuvshinova
             {
                 _selectedProduct = value;
                 OnPropertyChanged(nameof(SelectedProduct));
+                // Обновляем состояние команд, зависящих от выбранного товара
+                DeleteProductCommand.RaiseCanExecuteChanged();
+                SupplyProductCommand.RaiseCanExecuteChanged();
+                SellProductCommand.RaiseCanExecuteChanged();
             }
         }
 
@@ -90,6 +96,8 @@ namespace ISIP422_Reshetnyak_Kuvshinova
         public RelayCommand SupplyProductCommand { get; }
         public RelayCommand SellProductCommand { get; }
         public RelayCommand SearchProductsCommand { get; }
+        public RelayCommand UndoLastSaleCommand { get; }
+        public RelayCommand ShowSalesReportCommand { get; }
 
         private void AddProduct()
         {
@@ -129,7 +137,21 @@ namespace ISIP422_Reshetnyak_Kuvshinova
             {
                 if (SelectedProduct.Quantity > 0)
                 {
+                    // Создаем запись о продаже
+                    var sale = new Sale
+                    {
+                        ProductId = SelectedProduct.Id,
+                        ProductName = SelectedProduct.Name,
+                        Price = SelectedProduct.Price,
+                        Quantity = 1
+                    };
+
+                    _salesHistory.AddSale(sale);
                     SelectedProduct.Quantity -= 1;
+
+                    // Обновляем состояние команды отмены
+                    UndoLastSaleCommand.RaiseCanExecuteChanged();
+
                     MessageBox.Show($"Продажа выполнена! Товар: {SelectedProduct.Name}\nОстаток: {SelectedProduct.Quantity}", "Продажа товара", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 else
@@ -137,6 +159,47 @@ namespace ISIP422_Reshetnyak_Kuvshinova
                     MessageBox.Show($"Недостаточно товара на складе!\nТовар: {SelectedProduct.Name}", "Ошибка продажи", MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
             }
+        }
+
+        private void UndoLastSale()
+        {
+            var lastSale = _salesHistory.UndoLastSale();
+            if (lastSale != null)
+            {
+                // Возвращаем товар на склад
+                var product = _allProducts.FirstOrDefault(p => p.Id == lastSale.ProductId);
+                if (product != null)
+                {
+                    product.Quantity += lastSale.Quantity;
+                    MessageBox.Show($"Продажа отменена! Товар возвращен на склад: {product.Name}\nНовое количество: {product.Quantity}", "Отмена продажи", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+
+                // Обновляем состояние команды отмены
+                UndoLastSaleCommand.RaiseCanExecuteChanged();
+            }
+        }
+
+        private void ShowSalesReport()
+        {
+            var sales = _salesHistory.GetAllSales();
+            if (sales.Count == 0)
+            {
+                MessageBox.Show("История продаж пуста.", "Отчёт о продажах", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            string report = "ОТЧЁТ О ПРОДАЖАХ\n\n";
+            report += "Всего продаж: " + sales.Count + "\n";
+            report += "Общее количество проданных товаров: " + _salesHistory.GetTotalSoldQuantity() + " шт.\n";
+            report += "Общая сумма продаж: " + _salesHistory.GetTotalSalesAmount().ToString("C") + "\n\n";
+            report += "Детализация:\n";
+
+            foreach (var sale in sales)
+            {
+                report += $"• {sale}\n";
+            }
+
+            MessageBox.Show(report, "Отчёт о продажах", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         private void SearchProducts()
@@ -158,7 +221,7 @@ namespace ISIP422_Reshetnyak_Kuvshinova
             }
 
             FilteredProducts = new ObservableCollection<Product>(filtered);
-            Products = FilteredProducts; // Обновляем основную коллекцию для отображения
+            Products = FilteredProducts;
         }
 
         private bool CanDeleteProduct()
@@ -169,6 +232,11 @@ namespace ISIP422_Reshetnyak_Kuvshinova
         private bool CanModifyProduct()
         {
             return SelectedProduct != null;
+        }
+
+        private bool CanUndoLastSale()
+        {
+            return _salesHistory.CanUndo();
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
