@@ -17,12 +17,23 @@ namespace ISIP422_Reshetnyak_Kuvshinova
         public MainViewModel()
         {
             Products = new ObservableCollection<Product>();
+            AddTestData(); // Добавляем тестовые данные
 
             // Команды
             AddProductCommand = new RelayCommand(AddProduct);
             DeleteProductCommand = new RelayCommand(DeleteProduct, CanDeleteProduct);
             SupplyProductCommand = new RelayCommand(SupplyProduct, CanModifyProduct);
             SellProductCommand = new RelayCommand(SellProduct, CanModifyProduct);
+        }
+
+        private void AddTestData()
+        {
+            // 5 тестовых товаров
+            Products.Add(new Product { Name = "Ноутбук HP", Price = 55000, Quantity = 5, Category = Category.Electronics });
+            Products.Add(new Product { Name = "Яблоки", Price = 120, Quantity = 50, Category = Category.Food });
+            Products.Add(new Product { Name = "Футболка", Price = 1500, Quantity = 0, Category = Category.Clothing });
+            Products.Add(new Product { Name = "Наушники", Price = 3500, Quantity = 8, Category = Category.Electronics });
+            Products.Add(new Product { Name = "Шоколад", Price = 80, Quantity = 25, Category = Category.Food });
         }
 
         public ObservableCollection<Product> Products
@@ -76,7 +87,7 @@ namespace ISIP422_Reshetnyak_Kuvshinova
         {
             if (SelectedProduct != null)
             {
-                SelectedProduct.Quantity += 10; // Поставка 10 единиц
+                SelectedProduct.Quantity += 10;
                 MessageBox.Show($"Поставка выполнена! Товар: {SelectedProduct.Name}\nНовое количество: {SelectedProduct.Quantity}", "Поставка товара", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
@@ -87,7 +98,7 @@ namespace ISIP422_Reshetnyak_Kuvshinova
             {
                 if (SelectedProduct.Quantity > 0)
                 {
-                    SelectedProduct.Quantity -= 1; // Продажа 1 единицы
+                    SelectedProduct.Quantity -= 1;
                     MessageBox.Show($"Продажа выполнена! Товар: {SelectedProduct.Name}\nОстаток: {SelectedProduct.Quantity}", "Продажа товара", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 else
