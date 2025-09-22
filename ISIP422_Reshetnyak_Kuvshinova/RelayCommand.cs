@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
-namespace StoreInventoryApp
+namespace ISIP422_Reshetnyak_Kuvshinova
 {
     public class RelayCommand : ICommand
     {
