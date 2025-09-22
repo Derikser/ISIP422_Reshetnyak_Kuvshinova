@@ -12,28 +12,36 @@ namespace ISIP422_Reshetnyak_Kuvshinova
     public class MainViewModel : INotifyPropertyChanged
     {
         private ObservableCollection<Product> _products;
+        private ObservableCollection<Product> _filteredProducts;
         private Product _selectedProduct;
+        private string _searchText;
+        private List<Product> _allProducts;
 
         public MainViewModel()
         {
+            _allProducts = new List<Product>();
             Products = new ObservableCollection<Product>();
-            AddTestData(); // Добавляем тестовые данные
+            FilteredProducts = new ObservableCollection<Product>();
+            AddTestData();
 
             // Команды
             AddProductCommand = new RelayCommand(AddProduct);
             DeleteProductCommand = new RelayCommand(DeleteProduct, CanDeleteProduct);
             SupplyProductCommand = new RelayCommand(SupplyProduct, CanModifyProduct);
             SellProductCommand = new RelayCommand(SellProduct, CanModifyProduct);
+            SearchProductsCommand = new RelayCommand(SearchProducts);
         }
 
         private void AddTestData()
         {
             // 5 тестовых товаров
-            Products.Add(new Product { Name = "Ноутбук HP", Price = 55000, Quantity = 5, Category = Category.Electronics });
-            Products.Add(new Product { Name = "Яблоки", Price = 120, Quantity = 50, Category = Category.Food });
-            Products.Add(new Product { Name = "Футболка", Price = 1500, Quantity = 0, Category = Category.Clothing });
-            Products.Add(new Product { Name = "Наушники", Price = 3500, Quantity = 8, Category = Category.Electronics });
-            Products.Add(new Product { Name = "Шоколад", Price = 80, Quantity = 25, Category = Category.Food });
+            _allProducts.Add(new Product { Name = "Ноутбук HP", Price = 55000, Quantity = 5, Category = Category.Electronics });
+            _allProducts.Add(new Product { Name = "Яблоки", Price = 120, Quantity = 50, Category = Category.Food });
+            _allProducts.Add(new Product { Name = "Футболка", Price = 1500, Quantity = 0, Category = Category.Clothing });
+            _allProducts.Add(new Product { Name = "Наушники", Price = 3500, Quantity = 8, Category = Category.Electronics });
+            _allProducts.Add(new Product { Name = "Шоколад", Price = 80, Quantity = 25, Category = Category.Food });
+
+            UpdateFilteredProducts();
         }
 
         public ObservableCollection<Product> Products
@@ -43,6 +51,16 @@ namespace ISIP422_Reshetnyak_Kuvshinova
             {
                 _products = value;
                 OnPropertyChanged(nameof(Products));
+            }
+        }
+
+        public ObservableCollection<Product> FilteredProducts
+        {
+            get => _filteredProducts;
+            set
+            {
+                _filteredProducts = value;
+                OnPropertyChanged(nameof(FilteredProducts));
             }
         }
 
@@ -56,11 +74,22 @@ namespace ISIP422_Reshetnyak_Kuvshinova
             }
         }
 
+        public string SearchText
+        {
+            get => _searchText;
+            set
+            {
+                _searchText = value;
+                OnPropertyChanged(nameof(SearchText));
+            }
+        }
+
         // Команды
         public RelayCommand AddProductCommand { get; }
         public RelayCommand DeleteProductCommand { get; }
         public RelayCommand SupplyProductCommand { get; }
         public RelayCommand SellProductCommand { get; }
+        public RelayCommand SearchProductsCommand { get; }
 
         private void AddProduct()
         {
@@ -71,7 +100,8 @@ namespace ISIP422_Reshetnyak_Kuvshinova
                 Quantity = 0,
                 Category = Category.Electronics
             };
-            Products.Add(newProduct);
+            _allProducts.Add(newProduct);
+            UpdateFilteredProducts();
             SelectedProduct = newProduct;
         }
 
@@ -79,7 +109,8 @@ namespace ISIP422_Reshetnyak_Kuvshinova
         {
             if (SelectedProduct != null)
             {
-                Products.Remove(SelectedProduct);
+                _allProducts.Remove(SelectedProduct);
+                UpdateFilteredProducts();
             }
         }
 
@@ -106,6 +137,28 @@ namespace ISIP422_Reshetnyak_Kuvshinova
                     MessageBox.Show($"Недостаточно товара на складе!\nТовар: {SelectedProduct.Name}", "Ошибка продажи", MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
             }
+        }
+
+        private void SearchProducts()
+        {
+            UpdateFilteredProducts();
+        }
+
+        private void UpdateFilteredProducts()
+        {
+            var filtered = _allProducts;
+
+            if (!string.IsNullOrWhiteSpace(SearchText))
+            {
+                filtered = _allProducts.Where(p =>
+                    p.Id.ToString().Contains(SearchText) ||
+                    p.Name.ToLower().Contains(SearchText.ToLower()) ||
+                    p.Category.ToString().ToLower().Contains(SearchText.ToLower())
+                ).ToList();
+            }
+
+            FilteredProducts = new ObservableCollection<Product>(filtered);
+            Products = FilteredProducts; // Обновляем основную коллекцию для отображения
         }
 
         private bool CanDeleteProduct()
