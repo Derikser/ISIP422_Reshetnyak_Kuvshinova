@@ -11,7 +11,9 @@
         <!-- Панель кнопок -->
         <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="10">
             <Button Content="Добавить товар" Command="{Binding AddProductCommand}" Margin="0,0,10,0" Padding="10,5"/>
-            <Button Content="Удалить товар" Command="{Binding DeleteProductCommand}" Padding="10,5"/>
+            <Button Content="Удалить товар" Command="{Binding DeleteProductCommand}" Margin="0,0,10,0" Padding="10,5"/>
+            <Button Content="Поставка (+10)" Command="{Binding SupplyProductCommand}" Margin="0,0,10,0" Padding="10,5" Background="LightGreen"/>
+            <Button Content="Продажа (-1)" Command="{Binding SellProductCommand}" Padding="10,5" Background="LightCoral"/>
         </StackPanel>
 
         <!-- Список товаров -->
