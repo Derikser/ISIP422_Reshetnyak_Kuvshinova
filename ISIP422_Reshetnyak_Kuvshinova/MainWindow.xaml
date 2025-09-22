@@ -1,7 +1,7 @@
 ﻿<Window x:Class="ISIP422_Reshetnyak_Kuvshinova.MainWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Учёт товаров в магазине" Height="500" Width="900">
+        Title="Учёт товаров в магазине" Height="550" Width="1000">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -21,7 +21,9 @@
             <Button Content="Добавить товар" Command="{Binding AddProductCommand}" Margin="0,0,10,0" Padding="10,5"/>
             <Button Content="Удалить товар" Command="{Binding DeleteProductCommand}" Margin="0,0,10,0" Padding="10,5"/>
             <Button Content="Поставка (+10)" Command="{Binding SupplyProductCommand}" Margin="0,0,10,0" Padding="10,5" Background="LightGreen"/>
-            <Button Content="Продажа (-1)" Command="{Binding SellProductCommand}" Padding="10,5" Background="LightCoral"/>
+            <Button Content="Продажа (-1)" Command="{Binding SellProductCommand}" Margin="0,0,10,0" Padding="10,5" Background="LightCoral"/>
+            <Button Content="Отменить продажу" Command="{Binding UndoLastSaleCommand}" Margin="0,0,10,0" Padding="10,5" Background="LightYellow"/>
+            <Button Content="Отчёт о продажах" Command="{Binding ShowSalesReportCommand}" Padding="10,5" Background="LightBlue"/>
         </StackPanel>
 
         <!-- Список товаров -->

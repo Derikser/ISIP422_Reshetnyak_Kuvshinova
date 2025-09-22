@@ -14,6 +14,7 @@ namespace ISIP422_Reshetnyak_Kuvshinova
         private string _searchText;
         private List<Product> _allProducts;
         private SalesHistory _salesHistory;
+        private int _saleIdCounter;
 
         public MainViewModel()
         {
@@ -21,6 +22,7 @@ namespace ISIP422_Reshetnyak_Kuvshinova
             Products = new ObservableCollection<Product>();
             FilteredProducts = new ObservableCollection<Product>();
             _salesHistory = new SalesHistory();
+            _saleIdCounter = 1;
 
             AddTestData();
 
@@ -111,14 +113,19 @@ namespace ISIP422_Reshetnyak_Kuvshinova
             _allProducts.Add(newProduct);
             UpdateFilteredProducts();
             SelectedProduct = newProduct;
+
+            MessageBox.Show($"Товар добавлен: {newProduct.Name} (Код: {newProduct.Id})", "Добавление товара", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         private void DeleteProduct()
         {
             if (SelectedProduct != null)
             {
+                var productName = SelectedProduct.Name;
                 _allProducts.Remove(SelectedProduct);
                 UpdateFilteredProducts();
+
+                MessageBox.Show($"Товар удален: {productName}", "Удаление товара", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
 
@@ -140,6 +147,7 @@ namespace ISIP422_Reshetnyak_Kuvshinova
                     // Создаем запись о продаже
                     var sale = new Sale
                     {
+                        Id = _saleIdCounter++,
                         ProductId = SelectedProduct.Id,
                         ProductName = SelectedProduct.Name,
                         Price = SelectedProduct.Price,
@@ -152,7 +160,7 @@ namespace ISIP422_Reshetnyak_Kuvshinova
                     // Обновляем состояние команды отмены
                     UndoLastSaleCommand.RaiseCanExecuteChanged();
 
-                    MessageBox.Show($"Продажа выполнена! Товар: {SelectedProduct.Name}\nОстаток: {SelectedProduct.Quantity}", "Продажа товара", MessageBoxButton.OK, MessageBoxImage.Information);
+                    MessageBox.Show($"Продажа выполнена!\nТовар: {SelectedProduct.Name}\nОстаток: {SelectedProduct.Quantity}\nСумма: {sale.TotalAmount:C}", "Продажа товара", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 else
                 {
@@ -171,7 +179,7 @@ namespace ISIP422_Reshetnyak_Kuvshinova
                 if (product != null)
                 {
                     product.Quantity += lastSale.Quantity;
-                    MessageBox.Show($"Продажа отменена! Товар возвращен на склад: {product.Name}\nНовое количество: {product.Quantity}", "Отмена продажи", MessageBoxButton.OK, MessageBoxImage.Information);
+                    MessageBox.Show($"Продажа отменена!\nТовар возвращен: {product.Name}\nКоличество: +{lastSale.Quantity} шт.\nНовое количество: {product.Quantity}", "Отмена продажи", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
 
                 // Обновляем состояние команды отмены
@@ -188,16 +196,22 @@ namespace ISIP422_Reshetnyak_Kuvshinova
                 return;
             }
 
-            string report = "ОТЧЁТ О ПРОДАЖАХ\n\n";
-            report += "Всего продаж: " + sales.Count + "\n";
-            report += "Общее количество проданных товаров: " + _salesHistory.GetTotalSoldQuantity() + " шт.\n";
-            report += "Общая сумма продаж: " + _salesHistory.GetTotalSalesAmount().ToString("C") + "\n\n";
-            report += "Детализация:\n";
+            string report = "═══════════════════════════════════════════\n";
+            report += "           ОТЧЁТ О ПРОДАЖАХ\n";
+            report += "═══════════════════════════════════════════\n\n";
+            report += $"Всего продаж: {sales.Count}\n";
+            report += $"Общее количество проданных товаров: {_salesHistory.GetTotalSoldQuantity()} шт.\n";
+            report += $"Общая сумма продаж: {_salesHistory.GetTotalSalesAmount():C}\n\n";
+            report += "Детализация продаж:\n";
+            report += "─────────────────────────────────────────────────\n";
 
             foreach (var sale in sales)
             {
-                report += $"• {sale}\n";
+                report += $"{sale}\n";
             }
+
+            report += "─────────────────────────────────────────────────\n";
+            report += $"ИТОГО: {_salesHistory.GetTotalSalesAmount():C}";
 
             MessageBox.Show(report, "Отчёт о продажах", MessageBoxButton.OK, MessageBoxImage.Information);
         }
@@ -205,6 +219,11 @@ namespace ISIP422_Reshetnyak_Kuvshinova
         private void SearchProducts()
         {
             UpdateFilteredProducts();
+
+            if (!string.IsNullOrWhiteSpace(SearchText))
+            {
+                MessageBox.Show($"Найдено товаров: {FilteredProducts.Count}", "Результаты поиска", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
         }
 
         private void UpdateFilteredProducts()
