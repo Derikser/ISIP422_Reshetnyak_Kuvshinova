@@ -3,12 +3,24 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Учёт товаров в магазине" Height="450" Width="800">
     <Grid>
-        <ListView ItemsSource="{Binding Products}" SelectedItem="{Binding SelectedProduct}" Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Панель кнопок -->
+        <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="10">
+            <Button Content="Добавить товар" Command="{Binding AddProductCommand}" Margin="0,0,10,0" Padding="10,5"/>
+            <Button Content="Удалить товар" Command="{Binding DeleteProductCommand}" Padding="10,5"/>
+        </StackPanel>
+
+        <!-- Список товаров -->
+        <ListView ItemsSource="{Binding Products}" SelectedItem="{Binding SelectedProduct}" Grid.Row="1" Margin="10">
             <ListView.View>
                 <GridView>
                     <GridViewColumn Header="Код" DisplayMemberBinding="{Binding Id}" Width="60"/>
                     <GridViewColumn Header="Название" DisplayMemberBinding="{Binding Name}" Width="150"/>
-                    <GridViewColumn Header="Цена" DisplayMemberBinding="{Binding Price}" Width="80"/>
+                    <GridViewColumn Header="Цена" DisplayMemberBinding="{Binding Price, StringFormat={}{0:C}}" Width="80"/>
                     <GridViewColumn Header="Количество" DisplayMemberBinding="{Binding Quantity}" Width="80"/>
                     <GridViewColumn Header="В наличии" DisplayMemberBinding="{Binding IsInStock}" Width="80"/>
                     <GridViewColumn Header="Категория" DisplayMemberBinding="{Binding Category}" Width="100"/>
